@@ -1,0 +1,45 @@
+@startuml
+title Secuencia de Procesamiento y Vectorización (ETL)
+autonumber
+
+actor "Administrador CNRT" as Admin
+participant "Google Drive" as Drive
+participant "n8n Workflow\n(Orquestador)" as n8n
+participant "Google AI Studio\n(Gemini Embeddings)" as Gemini
+database "Qdrant\n(Vector DB)" as Qdrant
+
+== Disparador (Trigger) ==
+Admin -> Drive: Carga o Actualiza "Normativa.pdf"
+Drive -> n8n: Notificación de Evento (File Created/Updated)
+activate n8n
+
+== Extracción y Limpieza ==
+
+activate Qdrant
+n8n -> Qdrant: Eliminar puntos con metadata de File ID igual al nuevo archivo
+Qdrant -> n8n: Confirmación de operación exitosa
+deactivate Qdrant
+n8n -> Drive: Solicitar descarga de archivo (ID)
+activate Drive
+Drive --> n8n: Retorna archivo binario
+deactivate Drive
+
+n8n -> n8n: Extraer texto plano y fragmentar en chunks
+
+== Generación de Embeddings ==
+loop Para cada fragmento de texto
+    n8n -> Gemini: Enviar fragmento de texto
+    activate Gemini
+    Gemini --> n8n: Retorna Vector (Embedding Array)
+    deactivate Gemini
+end
+
+== Almacenamiento Vectorial ==
+n8n -> n8n: Construir Payload (Vector + Metadatos con File ID)
+n8n -> Qdrant: Insertar Puntos
+activate Qdrant
+Qdrant --> n8n: Confirmación de escritura (200 OK)
+deactivate Qdrant
+
+deactivate n8n
+@enduml

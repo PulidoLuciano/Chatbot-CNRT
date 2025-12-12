@@ -1,0 +1,44 @@
+@startuml
+title Flujo de Actividad: Mantenimiento de Base Vectorial
+
+|#LightBlue|Usuario (Administrador)|
+start
+:Eliminar archivo de Google Drive;
+detach
+note right
+  Acción manual que genera
+  la inconsistencia de datos
+end note
+
+|#LightGray|Sistema (Cron)|
+:Disparador Programado (Schedule Trigger);
+
+|#LightGreen|n8n (Lógica de Sincronización)|
+:Obtener lista maestra de archivos desde Drive;
+:Inicializar variable (Next_Offset = null);
+
+repeat :Iniciar Bucle de Paginación;
+  :Solicitar lote de puntos a Qdrant (Scroll);
+  note right
+    Usa el Offset actual
+    para traer la siguiente página
+  end note
+
+  :Ejecutar Script de Comparación;
+  
+  if (¿Existen IDs huérfanos en este lote?) then (Sí)
+    :Extraer IDs a eliminar;
+    |#Orange|Qdrant|
+    :Ejecutar DELETE (IDs Huérfanos);
+  else (No)
+    |#LightGreen|n8n (Lógica de Sincronización)|
+    :Omitir borrado;
+  endif
+
+  |#LightGreen|n8n (Lógica de Sincronización)|
+  :Actualizar Next_Offset con el valor recibido;
+  
+repeat while (¿Existe Next_Offset?) is (Sí)
+
+stop
+@enduml

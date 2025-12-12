@@ -1,0 +1,46 @@
+@startuml
+title Flujo de Actividad: Procesamiento del Agente Conversacional
+
+|#LightBlue|Ciudadano|
+start
+:Enviar Mensaje;
+
+|#LightGreen|n8n (Backend)|
+:Recuperar sesión desde Redis;
+:Invocar Agente Inteligente (Gemini);
+
+|#Pink|Agente Conversacional (Cerebro)|
+:Analizar Intención del Usuario;
+
+if (¿Es saludo o charla casual?) then (Sí)
+  :Generar respuesta conversacional directa;
+  note right
+    Evita consumo innecesario
+    de recursos de búsqueda
+  end note
+else (No, es consulta técnica)
+  :Decidir uso de Tool (Vector Store);
+  
+  |#Orange|Qdrant (Conocimiento)|
+  :Ejecutar Búsqueda Vectorial;
+  :Devolver fragmentos más similares;
+  
+  |#Pink|Agente Conversacional (Cerebro)|
+  :Analizar contexto recuperado;
+  
+  if (¿La información es suficiente?) then (Sí)
+    :Generar respuesta basada **solo** en evidencia;
+  else (No / Información inexistente)
+    :Generar respuesta de "Desconocimiento";
+    :Sugerir derivación a canal humano;
+  endif
+endif
+
+|#LightGreen|n8n (Backend)|
+:Guardar actualización en Redis;
+:Enviar respuesta al canal;
+
+|#LightBlue|Ciudadano|
+:Leer Respuesta;
+stop
+@enduml

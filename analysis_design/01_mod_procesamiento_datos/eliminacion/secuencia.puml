@@ -1,0 +1,43 @@
+@startuml
+title Secuencia de Sincronización y Eliminación de Huérfanos
+autonumber
+
+actor "Administrador" as Admin
+participant "Google Drive" as Drive
+control "n8n Trigger\n(Schedule)" as Timer
+participant "n8n Workflow\n(Sincronizador)" as n8n
+database "Qdrant\n(Vector DB)" as Qdrant
+
+== Evento Previo (Asíncrono) ==
+Admin -> Drive: Eliminar archivo (Norma_Obsoleta.pdf)
+note right: El archivo desaparece de Drive,\npero sus vectores siguen en Qdrant.
+
+... Tiempo transcurrido (ej. 24h) ...
+
+== Inicio del Proceso de Mantenimiento ==
+Timer -> n8n: Disparar ejecución programada
+activate n8n
+
+n8n -> Drive: Solicitar lista completa de archivos (Get All)
+activate Drive
+Drive --> n8n: Retorna Lista de IDs Válidos
+deactivate Drive
+
+loop Bucle de Paginación (Mientras haya más páginas)
+    
+    n8n -> Qdrant: Scroll Points (Batch=1000, Offset)
+    activate Qdrant
+    Qdrant --> n8n: Retorna Lote de Puntos + Next_Offset
+    deactivate Qdrant
+
+    alt Se detectaron archivos huérfanos
+        n8n -> Qdrant: Delete Points (Filtro: IDs Huérfanos)
+        activate Qdrant
+        Qdrant --> n8n: Confirmación de borrado
+        deactivate Qdrant
+    end
+
+end
+deactivate n8n
+
+@enduml

@@ -1,0 +1,49 @@
+@startuml
+title Secuencia de Atención al Ciudadano (RAG + Memoria Redis)
+autonumber
+
+actor "Ciudadano" as User
+participant "Interfaz Chat\n(Web/Telegram)" as Chat
+participant "n8n\n(Orquestador)" as n8n
+database "Redis\n(Memoria Sesión)" as Redis
+participant "AI Agent\n(Google Gemini)" as AI
+database "Qdrant\n(Vector DB)" as Qdrant
+
+== Inicio de Interacción ==
+User -> Chat: Envía consulta (ej. "¿Requisitos pase libre?")
+Chat -> n8n: Webhook (Mensaje + SessionID)
+
+activate n8n
+    == Recuperación de Contexto (Memoria) ==
+    n8n -> Redis: GET Historial de Chat (SessionID)
+    activate Redis
+    Redis --> n8n: Retorna últimos 7 mensajes
+    deactivate Redis
+    
+    == Razonamiento del Agente ==
+    n8n -> AI: Prompt Sistema + Historial + Pregunta Nueva
+    activate AI
+    
+    note right of AI: El Agente analiza la intención.\nDecide que necesita datos normativos.
+    
+    AI -> n8n: Solicitar Tool: "vector_store"
+    
+    == Búsqueda de Conocimiento (RAG) ==
+    n8n -> Qdrant: Search (Query Vectorizada)
+    activate Qdrant
+    Qdrant --> n8n: Retorna fragmentos de documentos (Chunks)
+    deactivate Qdrant
+    
+    n8n -> AI: Entrega los fragmentos recuperados
+    
+    == Generación de Respuesta ==
+    AI --> n8n: Respuesta Final en Texto
+    deactivate AI
+
+    == Actualización de Estado ==
+    n8n -> Redis: SET Nuevo Historial (Usuario + Bot)
+    n8n -> Chat: Enviar respuesta
+deactivate n8n
+
+Chat --> User: Muestra respuesta
+@enduml

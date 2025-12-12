@@ -1,0 +1,779 @@
+{
+  "name": "Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "unit": "minutes"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/0/folders/1Ds9bZF2yHiK_Yux3gemyqxzsBtX8NqjY",
+          "mode": "url"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        112
+      ],
+      "id": "d6f04b6b-cf7c-4e8f-aafc-1c272b56bab8",
+      "name": "Nuevo archivo creado",
+      "alwaysOutputData": false,
+      "executeOnce": false,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "LiaNO5YrlaL2R2FA",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyX",
+              "unit": "minutes"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "https://drive.google.com/drive/u/0/folders/1Ds9bZF2yHiK_Yux3gemyqxzsBtX8NqjY",
+          "mode": "url"
+        },
+        "event": "fileUpdated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        320
+      ],
+      "id": "f29b94f7-a68b-47d6-ab00-3b2aa3cf8fc9",
+      "name": "Archivo actualizado",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "LiaNO5YrlaL2R2FA",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "Normativas_CNRT",
+          "mode": "list",
+          "cachedResultName": "Normativas_CNRT"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        112
+      ],
+      "id": "970039a1-3031-4d17-a60d-dd413fef32ff",
+      "name": "Qdrant Vector Store",
+      "credentials": {
+        "qdrantApi": {
+          "id": "OSsZajb873du1Nha",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "@n8n/n8n-nodes-langchain.embeddingsGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1184,
+        576
+      ],
+      "id": "af38cab4-3448-4677-9aa5-4d8845212fdb",
+      "name": "Embeddings Google Gemini",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MT17JYY1juVgyQ4q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "binary",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_id",
+                "value": "={{ $('Edit Fields').item.json.file_id }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        880,
+        368
+      ],
+      "id": "99b1ebb4-db03-42ce-9a9f-9727f4edebfb",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "99785b80-20f9-4eca-9291-b83a9f87b718",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        208,
+        112
+      ],
+      "id": "64945e67-e073-46c8-9a27-bc8c5b55de19",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $('Edit Fields').item.json.file_id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        608,
+        112
+      ],
+      "id": "e195f1d4-8589-4400-b990-efe1cbee3b94",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "LiaNO5YrlaL2R2FA",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "point",
+        "operation": "deletePoints",
+        "collectionName": {
+          "__rl": true,
+          "value": "Normativas_CNRT",
+          "mode": "list",
+          "cachedResultName": "Normativas_CNRT"
+        },
+        "points": "null",
+        "filter": "={\n  \"must\": [{\n    \"key\": \"metadata.file_id\",\n    \"match\": {\n      \"value\": \"{{ $json.file_id }}\"\n    }\n  }]\n}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-qdrant.qdrant",
+      "typeVersion": 1,
+      "position": [
+        400,
+        112
+      ],
+      "id": "e69804b8-bc80-4210-b0ec-401f9a8b13ad",
+      "name": "Delete Points",
+      "credentials": {
+        "qdrantRestApi": {
+          "id": "IL0WcGAfjCTwG7nP",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Creación y actualización de archivos",
+        "height": 464,
+        "width": 1280,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -96,
+        48
+      ],
+      "typeVersion": 1,
+      "id": "c00be157-7918-4426-95cf-de350db4c325",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Procesamiento de Datos normativos",
+        "height": 864,
+        "width": 1328,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -128,
+        -32
+      ],
+      "typeVersion": 1,
+      "id": "0c8eeb10-21fb-4548-9106-63ead3837f0c",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {}
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        592
+      ],
+      "id": "d557eb9c-0485-42fd-b9a6-c9a97f340b48",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "resource": "point",
+        "operation": "scrollPoints",
+        "collectionName": {
+          "__rl": true,
+          "value": "Normativas_CNRT",
+          "mode": "list",
+          "cachedResultName": "Normativas_CNRT"
+        },
+        "limit": 1000,
+        "offset": "={{ $json.next_offset }}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-qdrant.qdrant",
+      "typeVersion": 1,
+      "position": [
+        464,
+        592
+      ],
+      "id": "77bae92c-1b0d-4d58-a745-d2f38084ae8a",
+      "name": "Scroll Points",
+      "credentials": {
+        "qdrantRestApi": {
+          "id": "IL0WcGAfjCTwG7nP",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "fileFolder",
+        "returnAll": true,
+        "filter": {
+          "folderId": {
+            "__rl": true,
+            "value": "1Ds9bZF2yHiK_Yux3gemyqxzsBtX8NqjY",
+            "mode": "list",
+            "cachedResultName": "CNRT_Normativas",
+            "cachedResultUrl": "https://drive.google.com/drive/folders/1Ds9bZF2yHiK_Yux3gemyqxzsBtX8NqjY"
+          },
+          "whatToSearch": "files"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        144,
+        592
+      ],
+      "id": "506bc2ee-ab76-45ef-a501-0acf0c433f55",
+      "name": "Get all files",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "LiaNO5YrlaL2R2FA",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Eliminación de archivos",
+        "height": 272,
+        "width": 1200,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        528
+      ],
+      "typeVersion": 1,
+      "id": "e7abbee3-92d7-46c9-ad39-8da2f34b227d",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "{\n  \"next_offset\": null\n}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        288,
+        592
+      ],
+      "id": "6f779a02-f998-44c4-924d-2fe950451c72",
+      "name": "Begin next_offset"
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Obtener los IDs de Drive (La Verdad Global)\n// Usamos $('NombreDelNodoDrive').all() para leer datos fuera del bucle\nconst driveFiles = $('Get all files').all();\nconst driveIds = new Set(driveFiles.map(file => file.json.id));\n\n// 2. Obtener los puntos de ESTE lote de Qdrant\nconst points = $input.first().json.result.points;\nconst nextOffset = $input.first().json.result.next_page_offset;\n\n// 3. Buscar Huérfanos en este lote\nconst idsToDelete = [];\npoints.forEach(point => {\n  if (point.payload) {\n    const fileId = point.payload.metadata.file_id;\n    if(fileId && !idsToDelete.find(id => id == fileId)){\n      if (!driveIds.has(fileId)) {\n        // Si no está en Drive, se marca para borrar\n        idsToDelete.push(fileId);\n      }\n    }\n  }\n});\n\n// 4. Retornar estructura para los siguientes pasos\nreturn {\n  json: {\n    ids_to_delete: idsToDelete,\n    next_offset: nextOffset\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        608,
+        592
+      ],
+      "id": "21c15843-e6de-4a99-9d23-2a68c823aafe",
+      "name": "Compare lists"
+    },
+    {
+      "parameters": {
+        "resource": "point",
+        "operation": "deletePoints",
+        "collectionName": {
+          "__rl": true,
+          "value": "Normativas_CNRT",
+          "mode": "list",
+          "cachedResultName": "Normativas_CNRT"
+        },
+        "points": "null",
+        "filter": "={\n  \"must\": [{\n    \"key\": \"metadata.file_id\",\n    \"match\": {\n      \"any\": {{ $json.ids_to_delete.toJsonString() }}\n    }\n  }]\n}",
+        "requestOptions": {}
+      },
+      "type": "n8n-nodes-qdrant.qdrant",
+      "typeVersion": 1,
+      "position": [
+        752,
+        592
+      ],
+      "id": "2550d950-3f72-4e13-a879-884c52c3922f",
+      "name": "Delete different IDs",
+      "credentials": {
+        "qdrantRestApi": {
+          "id": "IL0WcGAfjCTwG7nP",
+          "name": "Qdrant account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aaaba132-8823-43bd-9cf2-d862cf4dc043",
+              "leftValue": "={{ $('Compare lists').item.json.next_offset }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        896,
+        592
+      ],
+      "id": "b74bba1d-a3ff-418f-8d72-a5113dc2f7a2",
+      "name": "More pages"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        1424,
+        128
+      ],
+      "id": "b027278c-2bc4-4ed9-a2f1-f3e00d8ef363",
+      "name": "When chat message received",
+      "webhookId": "fa94c83a-a534-44fd-bdb0-e2398d7184f1"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres el Asistente Virtual Inteligente de la CNRT (Comisión Nacional de Regulación del Transporte) de Argentina. Tu misión es asistir a los ciudadanos respondiendo consultas sobre normativas, derechos, trámites de pasajes gratuitos para personas con discapacidad, fiscalización y multas.\n\nSIGUE ESTRICTAMENTE ESTAS REGLAS:\n\n1. FUENTE DE VERDAD:\n   - Para responder, DEBES utilizar EXCLUSIVAMENTE la información de contexto proporcionada por tu herramienta de búsqueda (\"Vector Store Tool\").\n   - NO utilices tu conocimiento general para interpretar leyes o inventar normativas que no estén explícitamente en los documentos recuperados.\n\n2. MANEJO DE DESCONOCIMIENTO:\n   - Si la información necesaria para responder NO se encuentra en el contexto recuperado por la herramienta, NO INTENTES INVENTAR UNA RESPUESTA.\n   - En su lugar, responde textualmente: \"Lo siento, no cuento con información específica sobre esa consulta en mi base de datos normativa actual. Por favor, comuníquese con un agente humano para un asesoramiento personalizado.\"\n\n3. TONO Y ESTILO:\n   - Mantén un tono formal, respetuoso y empático.\n   - Usa español rioplatense (Argentina) de forma profesional (puedes usar \"usted\" o un \"vos\" formal).\n   - Sé conciso. No des explicaciones innecesariamente largas. Ve al punto.\n\n4. FORMATO:\n   - Si enumeras requisitos (ej. para un trámite), usa listas con viñetas para facilitar la lectura.\n   - Si la respuesta implica pasos a seguir, enuméralos ordenadamente.\n\nRecuerda: Tu prioridad es la precisión normativa. Es preferible decir \"no sé\" a dar una información legal incorrecta."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        128
+      ],
+      "id": "ea047378-4063-4654-8f6b-6bddd9e1bfbe",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        1616,
+        320
+      ],
+      "id": "73ed459b-9a2d-4cf4-be14-f888ae4b4a56",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "MT17JYY1juVgyQ4q",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Work with the data collection to answer the questions. It is about the work plan of this chatbot",
+        "qdrantCollection": {
+          "__rl": true,
+          "value": "Normativas_CNRT",
+          "mode": "list",
+          "cachedResultName": "Normativas_CNRT"
+        },
+        "topK": 5,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreQdrant",
+      "typeVersion": 1.3,
+      "position": [
+        1920,
+        352
+      ],
+      "id": "a3a050a6-e57b-4647-9eaa-ce0913d5c53f",
+      "name": "Retrieve documents",
+      "credentials": {
+        "qdrantApi": {
+          "id": "OSsZajb873du1Nha",
+          "name": "QdrantApi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionTTL": 86400,
+        "contextWindowLength": 7
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        1776,
+        352
+      ],
+      "id": "644c6fbe-c5c8-4d88-8728-d6fb572bdf6a",
+      "name": "Redis Chat Memory",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Chatbot",
+        "height": 544,
+        "width": 1104,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1264,
+        16
+      ],
+      "typeVersion": 1,
+      "id": "db64ff53-5970-4591-b851-44a282c7d551",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "### Agente conversacional",
+        "height": 432,
+        "width": 832
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1360,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "56c39557-6514-4e18-8f2f-ee1ea434f5c6",
+      "name": "Sticky Note4"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Embeddings Google Gemini": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Retrieve documents",
+            "type": "ai_embedding",
+            "index": 0
+          },
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archivo actualizado": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nuevo archivo creado": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Delete Points",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Qdrant Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete Points": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get all files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all files": {
+      "main": [
+        [
+          {
+            "node": "Begin next_offset",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scroll Points": {
+      "main": [
+        [
+          {
+            "node": "Compare lists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Begin next_offset": {
+      "main": [
+        [
+          {
+            "node": "Scroll Points",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare lists": {
+      "main": [
+        [
+          {
+            "node": "Delete different IDs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delete different IDs": {
+      "main": [
+        [
+          {
+            "node": "More pages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "More pages": {
+      "main": [
+        [
+          {
+            "node": "Scroll Points",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Retrieve documents": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6869ade6-5053-43a3-8531-0d2fb9cb5d89",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"
+  },
+  "id": "PsscT2aVvrNdVFlT",
+  "tags": []
+}

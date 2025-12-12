@@ -1,0 +1,52 @@
+@startuml
+title Flujo de Actividad: Ingesta de Documentos Normativos
+
+|#LightBlue|Administrador|
+start
+:Cargar o Modificar Documento en Google Drive;
+
+|#LightYellow|Google Drive|
+:Detectar cambio en carpeta vigilada;
+:Disparar Trigger hacia n8n;
+
+|#LightGreen|n8n (Procesamiento)|
+:Recibir ID y Metadatos del archivo;
+:Solicitar eliminar payloads anteriores con igual File ID;
+
+|#Orange|Qdrant|
+:Eliminar puntos con metadatos de File ID del archivo;
+
+|#LightGreen|n8n (Procesamiento)|
+:Descargar Archivo Binario;
+
+:Limpiar texto (Sanitización);
+:Dividir texto en Chunks (Fragmentación);
+note right
+  Estrategia: Overlap (Solapamiento)
+  para mantener contexto entre cortes.
+end note
+
+:Iniciar iteración de Chunks;
+
+while (¿Quedan Chunks?) is (Sí)
+  :Enviar Chunk a Google AI Studio;
+  
+  |#Pink|Google AI Studio|
+  :Generar Embedding (Vector);
+  
+  |#LightGreen|n8n (Procesamiento)|
+  :Recibir Vector;
+  :Formatear Objeto (Vector + Payload);
+  :Acumular para inserción en lote (Batch);
+endwhile (No)
+
+:Enviar Lote a Qdrant;
+
+|#Orange|Qdrant|
+:Indexar Vectores y Metadatos;
+
+|#LightGreen|n8n (Procesamiento)|
+:Finalizar ejecución exitosa;
+
+stop
+@enduml
