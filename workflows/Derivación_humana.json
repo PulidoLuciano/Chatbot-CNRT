@@ -1,0 +1,72 @@
+{
+  "name": "Derivación humana",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "sessionId"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9e1c3971-81f0-45ac-9ac4-985541cff69a",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=chat_status:{{ $json.sessionId }}",
+        "value": "HUMAN",
+        "expire": true,
+        "ttl": 120
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        176,
+        0
+      ],
+      "id": "1e72d033-7d21-4f68-a719-f411c66c3bbd",
+      "name": "Cambiar estado del chat",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Cambiar estado del chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "7589b053-9772-44fa-93d4-ad9feee4572a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"
+  },
+  "id": "i6gKl5aWXv4E2iVB",
+  "tags": []
+}

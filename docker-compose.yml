@@ -8,12 +8,14 @@ services:
     ports:
       - "5678:5678"
     environment:
-      - N8N_HOST=localhost
+      - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
-      - WEBHOOK_URL=http://localhost:5678/
+      - WEBHOOK_URL=https://cnrt-tesis-alumno.hooks.n8n.cloud
+      - N8N_TUNNEL_SUBDOMAIN=cnrt-tesis-alumno
       # Zona horaria de Argentina para los logs correctos
       - GENERIC_TIMEZONE=America/Argentina/Tucuman
+    command: "start --tunnel"
     volumes:
       - n8n_data:/home/node/.n8n
 
