@@ -223,7 +223,7 @@
     },
     {
       "parameters": {
-        "jsCode": "if(!items[0]) return { history: [] };\nconst raw = items[0].json.history_raw;\nlet messages = [];\n\ntry {\n  if (Array.isArray(raw)) {\n    messages = raw.map(m => {\n      const parsed = JSON.parse(m)\n      return {\n      type: parsed.type === 'human' ? 'user' : parsed.type, // Adaptar según tu data\n      data: {\n        content: parsed.data.content || parsed.text\n      }\n    }});\n  }\n} catch (e) {\n  messages.push({ role: 'system', content: e });\n}\n\nreturn { history: messages };"
+        "jsCode": "if(!items[0]) return { history: [] };\nconst raw = items[0].json.history_raw;\nlet messages = [];\n\ntry {\n  if (Array.isArray(raw)) {\n    messages = raw.map(m => {\n      const parsed = JSON.parse(m)\n      return {\n      type: parsed.type === 'human' ? 'user' : parsed.type, // Adaptar según tu data\n      data: {\n        content: parsed.data.content || parsed.text\n      }\n    }});\n    messages.reverse()\n  }\n} catch (e) {\n  messages.push({ role: 'system', content: e });\n}\n\nreturn { history: messages };"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -238,8 +238,7 @@
       "parameters": {
         "operation": "push",
         "list": "={{$('Dashboard request').item.json.body.sessionId}}",
-        "messageData": "={\"type\":\"agent\",\"data\":{\"content\":\"{{$('Dashboard request').item.json.body.text}}\"}}",
-        "tail": true
+        "messageData": "={\"type\":\"agent\",\"data\":{\"content\":\"{{$('Dashboard request').item.json.body.text}}\"}}"
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -464,8 +463,7 @@
       "parameters": {
         "operation": "push",
         "list": "={{ $('Derivación solicitada').item.json.sessionId }}",
-        "messageData": "={\"type\":\"human\",\"data\":{\"content\":\"{{ $('Derivación solicitada').item.json.message }}\"}}",
-        "tail": true
+        "messageData": "={\"type\":\"human\",\"data\":{\"content\":\"{{ $('Derivación solicitada').item.json.message }}\"}}"
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
@@ -512,6 +510,26 @@
       "typeVersion": 1,
       "id": "2b499e8e-8bc7-4a34-8984-9f56004c6317",
       "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{$('Dashboard request').item.json.body.sessionId}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        944,
+        768
+      ],
+      "id": "c2048932-b1d2-4ee7-99d2-74cd622d2249",
+      "name": "Redis",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -702,13 +720,24 @@
           }
         ]
       ]
+    },
+    "/close": {
+      "main": [
+        [
+          {
+            "node": "Redis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "fea20489-ecc9-4735-9107-b713445c4094",
+  "versionId": "e3948fce-a7b7-404d-93de-55e6bc32c5a9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"

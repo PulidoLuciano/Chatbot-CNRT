@@ -81,7 +81,8 @@
         "chatId": "={{ $('Al ser ejecutado por otro workflow').item.json.chatId }}",
         "text": "={{ $('Al ser ejecutado por otro workflow').item.json.message }}",
         "additionalFields": {
-          "appendAttribution": false
+          "appendAttribution": false,
+          "parse_mode": "HTML"
         }
       },
       "type": "n8n-nodes-base.telegram",
@@ -99,21 +100,6 @@
           "name": "Telegram account"
         }
       }
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={\n  \"output\": {{ $('Al ser ejecutado por otro workflow').item.json.message }}\n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [
-        464,
-        112
-      ],
-      "id": "e7b74c77-c110-4f0e-833a-c6d4d1ee8d84",
-      "name": "Reponder por componente"
     }
   ],
   "pinData": {},
@@ -138,13 +124,7 @@
             "index": 0
           }
         ],
-        [
-          {
-            "node": "Reponder por componente",
-            "type": "main",
-            "index": 0
-          }
-        ]
+        []
       ]
     }
   },
@@ -152,7 +132,7 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "abd6740b-411e-4ddd-97ff-bc7848859684",
+  "versionId": "70ce20ed-6990-4541-a43f-2f6adaeb55eb",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"
