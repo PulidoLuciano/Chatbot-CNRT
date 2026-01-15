@@ -1,0 +1,40 @@
+@startuml
+skinparam responseMessageBelowArrow true
+skinparam maxMessageSize 180
+
+actor "Ciudadano" as User
+participant "Agente IA (n8n)" as Bot
+database "Sistema (Redis/Qdrant)" as DB
+actor "Operador Humano" as Operator
+
+group Derivación y Atención Humana
+    ' Paso 1
+    User -> Bot: 1. Envía mensaje (Consulta compleja)
+    activate Bot
+
+    ' Paso 2
+    Bot -> Bot: 2. Analiza intención \n(Detecta necesidad de escalar)
+
+    ' Paso 3
+    Bot -> DB: 3. Actualizar sesión (Mode=HUMAN) \ny añadir a Cola de Atención
+    activate DB
+    DB --> Bot: OK
+    deactivate DB
+
+    ' Paso 4
+    Bot --> User: 4. Mensaje automático: \n"Un operador analizará su caso..."
+    deactivate Bot
+
+    ' Pasos 5 y 6 (Bucle de conversación)
+    loop Interacción Humana
+        Operator -> User: 5. Contesta mensaje manualmente
+        
+        User -> Bot: 6. Realiza nueva consulta
+        activate Bot
+        Bot -> DB: Verifica Estado de Sesión
+        activate DB
+        DB --> Bot: Estado es HUMAN (IA Bloqueada)
+        deactivate DB
+        Bot -> DB: Guarda mensaje en historial (Sin responder)
+        deactivate Bot
+    end

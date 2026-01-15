@@ -1,0 +1,28 @@
+@startuml
+scale 600 width
+skinparam state {
+  BackgroundColor<<AI>> #E3F2FD
+  BackgroundColor<<HUMAN>> #FFF3E0
+  BorderColor Black
+}
+
+state "Modo IA (AI_MODE)" as AI <<AI>> : El modelo Gemini procesa\ny responde las consultas.
+state "Modo Humano (HUMAN_MODE)" as Human <<HUMAN>> : La IA se silencia.\nLos mensajes se guardan\npara el operador.
+state "Ticket Cerrado" as Closed : Transición inmediata\nde reinicio.
+
+[*] --> AI
+AI --> Human : 1. Solicitud explícita (Tool Call)\no Error de sistema
+Human --> Human : 2. Intercambio de mensajes\n(Chat encolado)
+Human --> Closed : 3. Operador resuelve\ny cierra ticket
+Closed --> AI : 4. Retorno automático\nal control de IA
+
+note right of AI
+  Estado por defecto
+  Key: status = "AI"
+end note
+
+note right of Human
+  Bloqueo de inferencia
+  Key: status = "HUMAN"
+end note
+@enduml
