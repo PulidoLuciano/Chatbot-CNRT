@@ -3,36 +3,17 @@
   "nodes": [
     {
       "parameters": {
-        "workflowInputs": {
-          "values": [
-            {
-              "name": "sessionId"
-            }
-          ]
-        }
-      },
-      "type": "n8n-nodes-base.executeWorkflowTrigger",
-      "typeVersion": 1.1,
-      "position": [
-        0,
-        0
-      ],
-      "id": "9e1c3971-81f0-45ac-9ac4-985541cff69a",
-      "name": "When Executed by Another Workflow"
-    },
-    {
-      "parameters": {
         "operation": "set",
         "key": "=chat_status:{{ $json.sessionId }}",
         "value": "HUMAN",
         "expire": true,
-        "ttl": 120
+        "ttl": 3600
       },
       "type": "n8n-nodes-base.redis",
       "typeVersion": 1,
       "position": [
-        176,
-        0
+        48,
+        -128
       ],
       "id": "1e72d033-7d21-4f68-a719-f411c66c3bbd",
       "name": "Cambiar estado del chat",
@@ -42,11 +23,616 @@
           "name": "Redis account"
         }
       }
+    },
+    {
+      "parameters": {
+        "multipleMethods": true,
+        "path": "agent/:action",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -160,
+        384
+      ],
+      "id": "9c820d96-077a-46e8-b04b-cab97b71371a",
+      "name": "Dashboard request",
+      "webhookId": "16a5ccac-16d3-4fcf-8c95-e13affa796db"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.params.action }}",
+                    "rightValue": "users",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "bccfc217-55f8-421d-8bac-6a3c43614cfb"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "d99e8292-a1a3-40a4-9af3-9d44641420fc",
+                    "leftValue": "={{ $json.params.action }}",
+                    "rightValue": "history",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "4d449ead-eae7-48b1-b517-66b0914e77a8",
+                    "leftValue": "={{ $json.params.action }}",
+                    "rightValue": "reply",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "58db667d-54b4-4993-baa2-5c0773ef6f05",
+                    "leftValue": "={{ $json.params.action }}",
+                    "rightValue": "close",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        48,
+        352
+      ],
+      "id": "9f602392-6e0f-4001-86ec-8f4af8823d73",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "keys",
+        "keyPattern": "queue:*"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        336,
+        176
+      ],
+      "id": "0869c490-e0c8-4ab5-826b-92902ac3716f",
+      "name": "Obtener sesiones abiertas",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.sessions }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        752,
+        176
+      ],
+      "id": "bf3cbd4a-a2b4-4469-afa8-12a1dc33e3d1",
+      "name": "/users"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "history_raw",
+        "key": "={{ $('Dashboard request').item.json.query.sessionId }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        336,
+        368
+      ],
+      "id": "7bf6f89e-19af-4dc3-b535-d0e519b0f068",
+      "name": "Obtener mensajes anteriores",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json.history }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        752,
+        368
+      ],
+      "id": "8d19e75b-dee0-419e-af67-c13707d5b872",
+      "name": "/history"
+    },
+    {
+      "parameters": {
+        "jsCode": "if(!items[0]) return { history: [] };\nconst raw = items[0].json.history_raw;\nlet messages = [];\n\ntry {\n  if (Array.isArray(raw)) {\n    messages = raw.map(m => {\n      const parsed = JSON.parse(m)\n      return {\n      type: parsed.type === 'human' ? 'user' : parsed.type, // Adaptar según tu data\n      data: {\n        content: parsed.data.content || parsed.text\n      }\n    }});\n  }\n} catch (e) {\n  messages.push({ role: 'system', content: e });\n}\n\nreturn { history: messages };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        544,
+        368
+      ],
+      "id": "b1f172f0-90d8-4b04-b235-1d7e12296fa1",
+      "name": "Parse chats"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{$('Dashboard request').item.json.body.sessionId}}",
+        "messageData": "={\"type\":\"agent\",\"data\":{\"content\":\"{{$('Dashboard request').item.json.body.text}}\"}}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        544,
+        576
+      ],
+      "id": "5ab9c70c-05c8-4dda-9df2-7b0d4e76b527",
+      "name": "Agregar mensaje",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"sent\" }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        944,
+        576
+      ],
+      "id": "d1f15346-eb71-45e3-a568-488f92c4d623",
+      "name": "/reply"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"closed\" }",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        752,
+        768
+      ],
+      "id": "1577c406-a53e-4045-9e14-f163687543c8",
+      "name": "/close"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=queue:{{$('Dashboard request').item.json.body.sessionId}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        544,
+        768
+      ],
+      "id": "1693678c-074d-4d29-953c-042dac3b0ea8",
+      "name": "Eliminar de la cola",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "sessionId"
+            },
+            {
+              "name": "message"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        -128
+      ],
+      "id": "9e1c3971-81f0-45ac-9ac4-985541cff69a",
+      "name": "Derivación solicitada"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=queue:{{ $('Derivación solicitada').item.json.sessionId }}",
+        "value": "esperando",
+        "expire": true,
+        "ttl": 3600
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        272,
+        -128
+      ],
+      "id": "33a9722d-285f-4248-ac09-7a4db9783715",
+      "name": "Añadir a cola de espera",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const keys = Object.keys(items[0].json).length > 0 ? items[0].json : [];\n\nlet keysArray = Array.isArray(keys) ? keys : Object.keys(keys);\n\nconst users = keysArray\n  .filter(k => k.startsWith('queue:'))\n  .map(k => k.replace('queue:', ''));\n\nreturn { sessions: users };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        544,
+        176
+      ],
+      "id": "6682396f-66bf-4589-8db1-af6996b828b5",
+      "name": "Limpiar nombres"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "=chat_status:{{$('Dashboard request').item.json.body.sessionId}}"
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        336,
+        768
+      ],
+      "id": "751a3bfb-21e9-4957-9dde-218e8405f0f6",
+      "name": "Eliminar estado",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qU5h0XKZ1pQk7Cdw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/qU5h0XKZ1pQk7Cdw",
+          "cachedResultName": "Responder mensaje"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatId": "={{$('Obtener datos').item.json.cleanId}}",
+            "channel": "={{$('Obtener datos').item.json.channel}}",
+            "message": "={{$('Obtener datos').item.json.text}}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        752,
+        576
+      ],
+      "id": "4eea7340-33c1-44b8-8a3a-209815a5d37d",
+      "name": "Responder mensaje"
+    },
+    {
+      "parameters": {
+        "jsCode": "const sessionId = $('Dashboard request').item.json.body.sessionId;\nconst text = $('Dashboard request').item.json.body.text;\n\nlet channel = 'unknown';\nlet cleanId = sessionId;\n\nif (sessionId.startsWith('telegram_')) {\n  channel = 'telegram';\n  cleanId = sessionId.replace('telegram_', '');\n} else if (sessionId.startsWith('web_')) {\n  channel = 'web';\n}\n\nreturn { json: { channel, cleanId, text, sessionId } };"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        576
+      ],
+      "id": "fd7621d0-ba96-4e87-abc9-e63fde98ce4f",
+      "name": "Obtener datos"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Derivación solicitada').item.json.sessionId }}",
+        "messageData": "={\"type\":\"human\",\"data\":{\"content\":\"{{ $('Derivación solicitada').item.json.message }}\"}}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -128
+      ],
+      "id": "d56b2788-e07e-4ff2-b691-8859c06eda03",
+      "name": "Agregar mensaje al historial",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Derivar chat a humano",
+        "height": 240,
+        "width": 928
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        -192
+      ],
+      "typeVersion": 1,
+      "id": "a65e4207-a773-4274-930d-62d376cda214",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Endpoints componentes web",
+        "height": 832,
+        "width": 1376,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -224,
+        112
+      ],
+      "typeVersion": 1,
+      "id": "2b499e8e-8bc7-4a34-8984-9f56004c6317",
+      "name": "Sticky Note1"
     }
   ],
   "pinData": {},
   "connections": {
-    "When Executed by Another Workflow": {
+    "Cambiar estado del chat": {
+      "main": [
+        [
+          {
+            "node": "Añadir a cola de espera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dashboard request": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Obtener sesiones abiertas",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obtener mensajes anteriores",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Obtener datos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Eliminar estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener sesiones abiertas": {
+      "main": [
+        [
+          {
+            "node": "Limpiar nombres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener mensajes anteriores": {
+      "main": [
+        [
+          {
+            "node": "Parse chats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse chats": {
+      "main": [
+        [
+          {
+            "node": "/history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agregar mensaje": {
+      "main": [
+        [
+          {
+            "node": "Responder mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eliminar de la cola": {
+      "main": [
+        [
+          {
+            "node": "/close",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Derivación solicitada": {
       "main": [
         [
           {
@@ -56,13 +642,73 @@
           }
         ]
       ]
+    },
+    "Limpiar nombres": {
+      "main": [
+        [
+          {
+            "node": "/users",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Eliminar estado": {
+      "main": [
+        [
+          {
+            "node": "Eliminar de la cola",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "/reply": {
+      "main": [
+        []
+      ]
+    },
+    "Responder mensaje": {
+      "main": [
+        [
+          {
+            "node": "/reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Obtener datos": {
+      "main": [
+        [
+          {
+            "node": "Agregar mensaje",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Añadir a cola de espera": {
+      "main": [
+        [
+          {
+            "node": "Agregar mensaje al historial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "7589b053-9772-44fa-93d4-ad9feee4572a",
+  "versionId": "fea20489-ecc9-4735-9107-b713445c4094",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"

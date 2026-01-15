@@ -1,0 +1,162 @@
+{
+  "name": "Responder mensaje",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chatId"
+            },
+            {
+              "name": "channel"
+            },
+            {
+              "name": "message"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "f03b19e1-037d-4449-ac7a-668bd730835d",
+      "name": "Al ser ejecutado por otro workflow"
+    },
+    {
+      "parameters": {
+        "content": "### Canales de respuesta",
+        "height": 432,
+        "width": 736,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -64,
+        -160
+      ],
+      "typeVersion": 1,
+      "id": "de88dffa-ead4-4919-9041-fea8715a3573",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dafef3b1-8043-4cda-b8b3-b22ea519753e",
+              "leftValue": "={{ $('Al ser ejecutado por otro workflow').item.json.channel }}",
+              "rightValue": "telegram",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        240,
+        0
+      ],
+      "id": "c1c92166-1351-49c3-a604-d9e60084cefa",
+      "name": "Definir canal de respuesta"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Al ser ejecutado por otro workflow').item.json.chatId }}",
+        "text": "={{ $('Al ser ejecutado por otro workflow').item.json.message }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        464,
+        -128
+      ],
+      "id": "7b6b3dbd-7dbb-4a78-81e4-99ef7ffcf053",
+      "name": "Responder por telegram",
+      "webhookId": "527b56d0-a36b-44d5-9c8e-9d9df004e7a4",
+      "credentials": {
+        "telegramApi": {
+          "id": "Ytgmc4QG2wupDOeP",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"output\": {{ $('Al ser ejecutado por otro workflow').item.json.message }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.4,
+      "position": [
+        464,
+        112
+      ],
+      "id": "e7b74c77-c110-4f0e-833a-c6d4d1ee8d84",
+      "name": "Reponder por componente"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Al ser ejecutado por otro workflow": {
+      "main": [
+        [
+          {
+            "node": "Definir canal de respuesta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Definir canal de respuesta": {
+      "main": [
+        [
+          {
+            "node": "Responder por telegram",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Reponder por componente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "abd6740b-411e-4ddd-97ff-bc7848859684",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"
+  },
+  "id": "qU5h0XKZ1pQk7Cdw",
+  "tags": []
+}

@@ -20,7 +20,7 @@
         #chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5; }
         #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .msg { max-width: 70%; padding: 10px 15px; border-radius: 10px; font-size: 14px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
-        .msg.human { align-self: flex-start; background: white; border-bottom-left-radius: 0; }
+        .msg.user { align-self: flex-start; background: white; border-bottom-left-radius: 0; }
         .msg.ai { align-self: flex-start; background: #f0f0f0; border: 1px solid #ddd; } 
         .msg.agent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 0; }
         
@@ -53,7 +53,7 @@
     </div>
 
     <script>
-        const API_BASE = 'https://cnrt-tesis-alumno.hooks.n8n.cloud/webhook'; // CAMBIAR ESTO
+        const API_BASE = 'https://ancient-snake-56.hooks.n8n.cloud//webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db'; // CAMBIAR ESTO
         let currentSessionId = null;
 
         // 1. Cargar Usuarios (Polling cada 5s)
@@ -88,7 +88,9 @@
             loadUsers(); // Para marcar activo
 
             const msgDiv = document.getElementById('messages');
-            msgDiv.innerHTML = '<div style="text-align:center;">Cargando historial...</div>';
+            if(!msgDiv) {
+                msgDiv.innerHTML = '<div style="text-align:center;">Cargando historial...</div>';
+            }
 
             try {
                 const res = await fetch(`${API_BASE}/agent/history?sessionId=${sessionId}`);
@@ -98,8 +100,8 @@
                 history.forEach(h => {
                     const div = document.createElement('div');
                     // Asumiendo que n8n devuelve { content: "...", role: "user/ai/agent" }
-                    div.className = `msg ${h.role}`; 
-                    div.innerText = h.content;
+                    div.className = `msg ${h.type}`; 
+                    div.innerText = h.data.content;
                     msgDiv.appendChild(div);
                 });
                 msgDiv.scrollTop = msgDiv.scrollHeight;
@@ -142,6 +144,7 @@
             
             await fetch(`${API_BASE}/agent/close`, { // Necesitas crear este webhook tb
                 method: 'POST',
+                headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ sessionId: currentSessionId })
             });
             currentSessionId = null;
@@ -150,7 +153,8 @@
         }
 
         // Auto-carga inicial
-        setInterval(loadUsers, 5000); // Polling cada 5 seg
+        setInterval(() => currentSessionId && loadHistory(currentSessionId), 1000 * 3);
+        setInterval(loadUsers, 1000 * 60 * 2); // Polling cada 2 minutos
         loadUsers();
     </script>
 </body>

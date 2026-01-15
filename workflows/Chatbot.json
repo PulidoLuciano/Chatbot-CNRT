@@ -101,7 +101,7 @@
       "typeVersion": 1,
       "position": [
         1168,
-        848
+        784
       ],
       "id": "af38cab4-3448-4677-9aa5-4d8845212fdb",
       "name": "Embeddings Google Gemini",
@@ -441,7 +441,7 @@
       "typeVersion": 2.2,
       "position": [
         2064,
-        400
+        304
       ],
       "id": "ea047378-4063-4654-8f6b-6bddd9e1bfbe",
       "name": "AI Agent",
@@ -455,7 +455,7 @@
       "typeVersion": 1,
       "position": [
         2000,
-        592
+        496
       ],
       "id": "73ed459b-9a2d-4cf4-be14-f888ae4b4a56",
       "name": "Google Gemini Chat Model",
@@ -483,7 +483,7 @@
       "typeVersion": 1.3,
       "position": [
         2304,
-        656
+        560
       ],
       "id": "a3a050a6-e57b-4647-9eaa-ce0913d5c53f",
       "name": "Retrieve documents",
@@ -505,7 +505,7 @@
       "typeVersion": 1.5,
       "position": [
         2160,
-        624
+        528
       ],
       "id": "644c6fbe-c5c8-4d88-8728-d6fb572bdf6a",
       "name": "Redis Chat Memory",
@@ -519,14 +519,14 @@
     {
       "parameters": {
         "content": "## Chatbot",
-        "height": 1168,
-        "width": 2752,
+        "height": 688,
+        "width": 2464,
         "color": 5
       },
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         928,
-        -368
+        32
       ],
       "typeVersion": 1,
       "id": "db64ff53-5970-4591-b851-44a282c7d551",
@@ -541,7 +541,7 @@
       "type": "n8n-nodes-base.stickyNote",
       "position": [
         1936,
-        352
+        256
       ],
       "typeVersion": 1,
       "id": "56c39557-6514-4e18-8f2f-ee1ea434f5c6",
@@ -560,7 +560,8 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "sessionId": "={{ $('Router').item.json.sessionId }}"
+            "sessionId": "={{ $('Router').item.json.sessionId }}",
+            "message": "={{ $('Router').item.json.message }}"
           },
           "matchingColumns": [
             "sessionId"
@@ -569,6 +570,16 @@
             {
               "id": "sessionId",
               "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -585,7 +596,7 @@
       "typeVersion": 2.2,
       "position": [
         2608,
-        608
+        512
       ],
       "id": "d78807a1-0206-4fb4-8616-c70305566586",
       "name": "Llamar a derivación humana"
@@ -624,13 +635,24 @@
         "workflowInputs": {
           "mappingMode": "defineBelow",
           "value": {
-            "sessionId": "={{ $('Router').item.json.sessionId }}"
+            "sessionId": "={{ $('Router').item.json.sessionId }}",
+            "message": "={{ $('Router').item.json.message }}"
           },
           "matchingColumns": [],
           "schema": [
             {
               "id": "sessionId",
               "displayName": "sessionId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
               "required": false,
               "defaultMatch": false,
               "display": true,
@@ -648,7 +670,7 @@
       "typeVersion": 1.3,
       "position": [
         2656,
-        384
+        288
       ],
       "id": "a4c474a3-3831-437b-a4a2-ce339d16f11b",
       "name": "Llamar a 'Derivación humana'"
@@ -683,7 +705,7 @@
       "typeVersion": 2.2,
       "position": [
         2432,
-        400
+        304
       ],
       "id": "2ad9426c-a978-47cf-bd67-b5ea7f710fcf",
       "name": "Si error"
@@ -842,7 +864,7 @@
       "parameters": {
         "httpMethod": "POST",
         "path": "329b0e53-4687-4e79-8c66-f4b54219234e",
-        "responseMode": "responseNode",
+        "responseMode": "lastNode",
         "options": {}
       },
       "type": "n8n-nodes-base.webhook",
@@ -854,40 +876,6 @@
       "id": "e47addca-e6a0-439f-ad07-51a420e0add6",
       "name": "Mensaje de componente web",
       "webhookId": "329b0e53-4687-4e79-8c66-f4b54219234e"
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": true,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 2
-          },
-          "conditions": [
-            {
-              "id": "dafef3b1-8043-4cda-b8b3-b22ea519753e",
-              "leftValue": "={{ $('Router').item.json.to.channel }}",
-              "rightValue": "telegram",
-              "operator": {
-                "type": "string",
-                "operation": "equals",
-                "name": "filter.operator.equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [
-        3216,
-        320
-      ],
-      "id": "fa2254e6-b1bb-4d7b-a248-30b1ee23d84c",
-      "name": "Definir canal de respuesta"
     },
     {
       "parameters": {
@@ -907,7 +895,7 @@
       "typeVersion": 3.4,
       "position": [
         2864,
-        384
+        288
       ],
       "id": "22314af7-7119-4ae7-a965-6d239f05dd8e",
       "name": "Respuesta de servicio no disponible"
@@ -930,88 +918,10 @@
       "typeVersion": 3.4,
       "position": [
         2864,
-        592
+        496
       ],
       "id": "7f9ca29f-f25e-4525-8cca-ca9ec2a18f9d",
       "name": "Respuesta del Agente AI"
-    },
-    {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={\n  \"output\": \n}",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [
-        3440,
-        432
-      ],
-      "id": "99fa3daa-bf89-4246-bfce-3954da78332b",
-      "name": "Reponder por componente"
-    },
-    {
-      "parameters": {
-        "chatId": "={{ $('Router').item.json.to.id }}",
-        "text": "={{ $json.response }}",
-        "additionalFields": {
-          "appendAttribution": false
-        }
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        3440,
-        192
-      ],
-      "id": "25af1802-e895-400f-af3e-12c0456342e3",
-      "name": "Responder por telegram",
-      "webhookId": "527b56d0-a36b-44d5-9c8e-9d9df004e7a4",
-      "credentials": {
-        "telegramApi": {
-          "id": "Ytgmc4QG2wupDOeP",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "assignments": {
-          "assignments": [
-            {
-              "id": "8ab55285-fe1b-4699-ac18-0b33311799e7",
-              "name": "response",
-              "value": "=Esto es la respuesta de un humano",
-              "type": "string"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.set",
-      "typeVersion": 3.4,
-      "position": [
-        2448,
-        -112
-      ],
-      "id": "7e59fae7-dfcc-461e-8303-b01403281bb5",
-      "name": "Respuesta humano"
-    },
-    {
-      "parameters": {
-        "content": "### Canales de respuesta",
-        "height": 432,
-        "width": 496,
-        "color": 7
-      },
-      "type": "n8n-nodes-base.stickyNote",
-      "position": [
-        3152,
-        160
-      ],
-      "typeVersion": 1,
-      "id": "23a4a726-356c-4fdf-9577-0b618d4e9ac5",
-      "name": "Sticky Note5"
     },
     {
       "parameters": {
@@ -1028,6 +938,107 @@
       "typeVersion": 1,
       "id": "de39f467-10a9-4e41-a751-cdee123934c3",
       "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "qU5h0XKZ1pQk7Cdw",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/qU5h0XKZ1pQk7Cdw",
+          "cachedResultName": "Responder mensaje"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatId": "={{ $('Router').item.json.to.id }}",
+            "channel": "={{ $('Router').item.json.to.channel }}",
+            "message": "={{ $json.response }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "channel",
+              "displayName": "channel",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        3200,
+        368
+      ],
+      "id": "4c2e88ce-c64b-4c0f-9144-da2cac135fa0",
+      "name": "Responder mensaje"
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Router').item.json.sessionId }}",
+        "messageData": "={\"type\":\"human\",\"data\":{\"content\":\"{{ $('Router').item.json.message }}\"}}",
+        "tail": true
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        2064,
+        96
+      ],
+      "id": "b8b1e92c-777e-472b-a3ad-80c8ee41c671",
+      "name": "Agregar mensaje",
+      "credentials": {
+        "redis": {
+          "id": "a0BGFjJROApRnQqG",
+          "name": "Redis account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "### Guardar mensajes para operador",
+        "height": 192,
+        "width": 288,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1968,
+        48
+      ],
+      "typeVersion": 1,
+      "id": "05c99aaf-148a-4653-80a6-8b575a10fd26",
+      "name": "Sticky Note5"
     }
   ],
   "pinData": {},
@@ -1290,7 +1301,7 @@
       "main": [
         [
           {
-            "node": "Respuesta humano",
+            "node": "Agregar mensaje",
             "type": "main",
             "index": 0
           }
@@ -1359,29 +1370,11 @@
         ]
       ]
     },
-    "Definir canal de respuesta": {
-      "main": [
-        [
-          {
-            "node": "Responder por telegram",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Reponder por componente",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Respuesta de servicio no disponible": {
       "main": [
         [
           {
-            "node": "Definir canal de respuesta",
+            "node": "Responder mensaje",
             "type": "main",
             "index": 0
           }
@@ -1392,18 +1385,7 @@
       "main": [
         [
           {
-            "node": "Definir canal de respuesta",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Respuesta humano": {
-      "main": [
-        [
-          {
-            "node": "Definir canal de respuesta",
+            "node": "Responder mensaje",
             "type": "main",
             "index": 0
           }
@@ -1411,11 +1393,11 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "1da1241b-1132-4e31-a46b-f3e089dbe6cf",
+  "versionId": "9623f160-28f9-440f-807b-e5d08c037ab7",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "fc8a2bfff0f6788606de50e90b20e9f86a65aada0c31dd593397e9db06a362f5"

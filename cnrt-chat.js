@@ -1,234 +1,170 @@
 class CNRTChat extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({ mode: 'open' }); // Encapsulamiento
-      this.isOpen = false;
-      this.sessionId = this.getSessionId(); // Recupera o crea ID
-      this.webhookUrl = this.getAttribute('webhook-url'); // URL de n8n
+  constructor() {
+    super();
+    this.attachShadow({ mode: 'open' });
+    this.isOpen = false;
+    this.sessionId = this.getSessionId();
+    // URL Base para POST (enviar) y GET (sincronizar)
+    // Asumimos que tu webhook base es .../webhook/chat-web
+    this.syncUrl = this.getAttribute('sync-url');
+    this.sendUrl = this.getAttribute('send-url'); 
+    this.syncInterval = null;
+    this.messageCount = 0; // Para saber si llegaron nuevos
+  }
+
+  getSessionId() {
+    let id = localStorage.getItem('cnrt_session_id');
+    if (!id) {
+      id = 'web_' + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem('cnrt_session_id', id);
     }
-  
-    // 1. Estilos y Estructura HTML
-    connectedCallback() {
-      this.render();
-      this.addEventListeners();
-    }
-  
-    // Genera un ID único para Redis y lo guarda en el navegador
-    getSessionId() {
-      let id = localStorage.getItem('cnrt_session_id');
-      if (!id) {
-        id = 'web_' + Math.random().toString(36).substr(2, 9);
-        localStorage.setItem('cnrt_session_id', id);
+    return id;
+  }
+
+  connectedCallback() {
+    this.render();
+    this.addEventListeners();
+    // Iniciar sincronización automática
+    this.startPolling();
+  }
+
+  disconnectedCallback() {
+    this.stopPolling();
+  }
+
+  // --- LÓGICA DE SINCRONIZACIÓN (POLLING) ---
+  startPolling() {
+    // Preguntar cada 4 segundos si hay mensajes nuevos
+    this.syncInterval = setInterval(() => this.syncMessages(), 4000);
+  }
+
+  stopPolling() {
+    if (this.syncInterval) clearInterval(this.syncInterval);
+  }
+
+  async syncMessages() {
+    if (!this.isOpen) return; // Solo sincronizar si el chat está abierto (ahorra recursos)
+
+    try {
+      // Construimos la URL de sincronización. 
+      // Si tu webhook de envio es .../chat-web, el de sync debe ser .../chat-web/sync
+      // O ajusta esta lógica según tus rutas en n8n.
+      const syncUrl = this.syncUrl + '/agent/history?sessionId=' + this.sessionId;
+
+      const response = await fetch(syncUrl);
+      if (!response.ok) return;
+
+      const history = await response.json();
+      
+      // Si hay más mensajes en el servidor que en mi pantalla, actualizo
+      if (Array.isArray(history) && history.length > this.messageCount) {
+        this.renderHistory(history);
       }
-      return id;
-    }
-  
-    render() {
-      this.shadowRoot.innerHTML = `
-        <style>
-          :host {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-            font-family: 'Segoe UI', sans-serif;
-          }
-          /* Botón Flotante (Launcher) */
-          .launcher {
-            width: 60px;
-            height: 60px;
-            background-color: #0072bb; /* Azul Institucional */
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.3s;
-          }
-          .launcher:hover { transform: scale(1.1); }
-          .launcher svg { width: 30px; height: 30px; fill: white; }
-          
-          /* Ventana del Chat */
-          .chat-window {
-            position: absolute;
-            bottom: 80px;
-            right: 0;
-            width: 350px;
-            height: 500px;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
-            display: none; /* Oculto por defecto */
-            flex-direction: column;
-            overflow: hidden;
-            border: 1px solid #e0e0e0;
-          }
-          .chat-window.open { display: flex; }
-          
-          /* Header */
-          .header {
-            background: #0072bb;
-            color: white;
-            padding: 15px;
-            font-weight: bold;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          
-          /* Lista de Mensajes */
-          .messages {
-            flex: 1;
-            padding: 15px;
-            overflow-y: auto;
-            background: #f9f9f9;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-          }
-          .msg {
-            max-width: 80%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            line-height: 1.4;
-          }
-          .msg.user {
-            align-self: flex-end;
-            background: #0072bb;
-            color: white;
-            border-bottom-right-radius: 2px;
-          }
-          .msg.bot {
-            align-self: flex-start;
-            background: #e0e0e0;
-            color: #333;
-            border-bottom-left-radius: 2px;
-          }
-          
-          /* Input Area */
-          .input-area {
-            padding: 10px;
-            border-top: 1px solid #eee;
-            display: flex;
-            background: white;
-          }
-          input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            outline: none;
-          }
-          button.send {
-            background: none;
-            border: none;
-            color: #0072bb;
-            cursor: pointer;
-            font-weight: bold;
-            padding: 0 10px;
-          }
-          
-          /* Typing Indicator */
-          .typing { font-size: 12px; color: #888; margin-left: 15px; display: none; }
-        </style>
-  
-        <div class="chat-window" id="window">
-          <div class="header">
-            <span>Asistente Virtual CNRT</span>
-            <span style="cursor:pointer" id="close-btn">✖</span>
-          </div>
-          <div class="messages" id="msg-list">
-            <div class="msg bot">¡Hola! Soy el asistente virtual de la CNRT. ¿En qué puedo ayudarte hoy?</div>
-          </div>
-          <div class="typing" id="typing">Escribiendo...</div>
-          <div class="input-area">
-            <input type="text" id="input" placeholder="Escribe tu consulta..." />
-            <button class="send" id="send-btn">Enviar</button>
-          </div>
-        </div>
-  
-        <div class="launcher" id="launcher">
-          <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-        </div>
-      `;
-    }
-  
-    addEventListeners() {
-      const launcher = this.shadowRoot.getElementById('launcher');
-      const window = this.shadowRoot.getElementById('window');
-      const closeBtn = this.shadowRoot.getElementById('close-btn');
-      const sendBtn = this.shadowRoot.getElementById('send-btn');
-      const input = this.shadowRoot.getElementById('input');
-  
-      // Toggle Abrir/Cerrar
-      const toggle = () => {
-        this.isOpen = !this.isOpen;
-        window.classList.toggle('open', this.isOpen);
-        if (this.isOpen) input.focus();
-      };
-  
-      launcher.addEventListener('click', toggle);
-      closeBtn.addEventListener('click', toggle);
-  
-      // Enviar Mensaje
-      const send = async () => {
-        const text = input.value.trim();
-        if (!text) return;
-  
-        // 1. Mostrar mensaje del usuario
-        this.addMessage(text, 'user');
-        input.value = '';
-        this.showTyping(true);
-  
-        try {
-          // 2. Enviar a n8n
-          const response = await fetch(this.webhookUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              chatInput: text,
-              sessionId: this.sessionId, // Importante para Redis
-              metadata: { source: 'web' } // Para que n8n sepa que es web
-            })
-          });
-  
-          const data = await response.json();
-          
-          // 3. Mostrar respuesta del bot
-          this.showTyping(false);
-          // Asumiendo que n8n devuelve { "output": "Texto de respuesta" }
-          this.addMessage(data.output || "Lo siento, hubo un error de conexión.", 'bot');
-  
-        } catch (error) {
-          this.showTyping(false);
-          this.addMessage("Error al conectar con el servidor.", 'bot');
-          console.error(error);
-        }
-      };
-  
-      sendBtn.addEventListener('click', send);
-      input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') send();
-      });
-    }
-  
-    addMessage(text, sender) {
-      const list = this.shadowRoot.getElementById('msg-list');
-      const div = document.createElement('div');
-      div.classList.add('msg', sender);
-      // Convertir saltos de línea a <br> (básico)
-      div.innerHTML = text.replace(/\n/g, '<br>'); 
-      list.appendChild(div);
-      list.scrollTop = list.scrollHeight; // Auto-scroll al fondo
-    }
-  
-    showTyping(show) {
-      const el = this.shadowRoot.getElementById('typing');
-      el.style.display = show ? 'block' : 'none';
+    } catch (e) {
+      console.error("Error sync:", e);
     }
   }
-  
-  // Registrar el componente
-  customElements.define('cnrt-chat', CNRTChat);
+
+  renderHistory(history) {
+    const list = this.shadowRoot.getElementById('msg-list');
+    list.innerHTML = ''; // Limpiamos y repintamos (simple y efectivo para prototipos)
+    
+    history.forEach(msg => {
+      // Adaptar según cómo guarde n8n: msg.role, msg.type, msg.content
+      // Langchain suele usar: { type: 'human'|'ai', data: { content: "..." } }
+      // O tu formato custom. Ajusta esta línea:
+      const sender = (msg.type === 'user') ? 'user' : 'bot';
+      const text = msg.content || msg.data?.content || msg.text || "";
+      
+      this.addMessageDOM(text, sender);
+    });
+    
+    this.messageCount = history.length;
+    list.scrollTop = list.scrollHeight;
+  }
+  // -------------------------------------------
+
+  render() {
+    this.shadowRoot.innerHTML = `
+      <style>
+        /* ... (MISMOS ESTILOS DE ANTES) ... */
+        :host { position: fixed; bottom: 20px; right: 20px; z-index: 9999; font-family: sans-serif; }
+        .launcher { width: 60px; height: 60px; background: #0072bb; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .chat-window { position: absolute; bottom: 80px; right: 0; width: 350px; height: 500px; background: white; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.15); display: none; flex-direction: column; overflow: hidden; border: 1px solid #ddd; }
+        .chat-window.open { display: flex; }
+        .header { background: #0072bb; color: white; padding: 15px; font-weight: bold; display:flex; justify-content:space-between; }
+        .messages { flex: 1; padding: 15px; overflow-y: auto; background: #f9f9f9; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 8px 12px; border-radius: 10px; font-size: 14px; word-wrap: break-word; }
+        .msg.user { align-self: flex-end; background: #0072bb; color: white; border-bottom-right-radius: 2px; }
+        .msg.bot { align-self: flex-start; background: #e0e0e0; color: #333; border-bottom-left-radius: 2px; }
+        .msg.agent { align-self: flex-start; background: #e0e0e0; color: #333; border-bottom-left-radius: 2px; }
+        .input-area { padding: 10px; border-top: 1px solid #eee; display: flex; background: white; }
+        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+      </style>
+
+      <div class="chat-window" id="window">
+        <div class="header">
+          <span>CNRT Ayuda</span>
+          <span id="close-btn" style="cursor:pointer">✖</span>
+        </div>
+        <div class="messages" id="msg-list"></div>
+        <div class="input-area">
+          <input type="text" id="input" placeholder="Escribe..." />
+        </div>
+      </div>
+      <div class="launcher" id="launcher">💬</div>
+    `;
+  }
+
+  addEventListeners() {
+    const launcher = this.shadowRoot.getElementById('launcher');
+    const closeBtn = this.shadowRoot.getElementById('close-btn');
+    const input = this.shadowRoot.getElementById('input');
+
+    const toggle = () => {
+      this.isOpen = !this.isOpen;
+      this.shadowRoot.getElementById('window').classList.toggle('open', this.isOpen);
+      if(this.isOpen) {
+          input.focus();
+          this.syncMessages(); // Sincronizar al abrir
+      }
+    };
+
+    launcher.addEventListener('click', toggle);
+    closeBtn.addEventListener('click', toggle);
+
+    input.addEventListener('keypress', async (e) => {
+      if (e.key === 'Enter') {
+        const text = input.value.trim();
+        if (!text) return;
+        
+        // Optimismo: Mostrar mensaje inmediatamente
+        this.addMessageDOM(text, 'user');
+        input.value = '';
+
+        try {
+            // Enviar mensaje (POST)
+            await fetch(this.sendUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chatInput: text, sessionId: this.sessionId })
+            });
+            // No esperamos respuesta directa del fetch POST.
+            // Dejamos que el próximo "syncMessages" traiga la respuesta (sea IA o Humano)
+            setTimeout(() => this.syncMessages(), 1000); 
+        } catch (err) { console.error(err); }
+      }
+    });
+  }
+
+  addMessageDOM(text, sender) {
+    const list = this.shadowRoot.getElementById('msg-list');
+    const div = document.createElement('div');
+    div.classList.add('msg', sender);
+    div.innerText = text;
+    list.appendChild(div);
+    list.scrollTop = list.scrollHeight;
+  }
+}
+
+customElements.define('cnrt-chat', CNRTChat);
