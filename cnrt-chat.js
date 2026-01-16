@@ -43,12 +43,9 @@ class CNRTChat extends HTMLElement {
   }
 
   async syncMessages() {
-    if (!this.isOpen) return; // Solo sincronizar si el chat está abierto (ahorra recursos)
+    if (!this.isOpen) return; // Solo sincronizar si el chat está abierto
 
     try {
-      // Construimos la URL de sincronización. 
-      // Si tu webhook de envio es .../chat-web, el de sync debe ser .../chat-web/sync
-      // O ajusta esta lógica según tus rutas en n8n.
       const syncUrl = this.syncUrl + '/agent/history?sessionId=' + this.sessionId;
 
       const response = await fetch(syncUrl);
@@ -67,12 +64,9 @@ class CNRTChat extends HTMLElement {
 
   renderHistory(history) {
     const list = this.shadowRoot.getElementById('msg-list');
-    list.innerHTML = ''; // Limpiamos y repintamos (simple y efectivo para prototipos)
+    list.innerHTML = '';
     
     history.forEach(msg => {
-      // Adaptar según cómo guarde n8n: msg.role, msg.type, msg.content
-      // Langchain suele usar: { type: 'human'|'ai', data: { content: "..." } }
-      // O tu formato custom. Ajusta esta línea:
       const sender = (msg.type === 'user') ? 'user' : 'bot';
       const text = msg.content || msg.data?.content || msg.text || "";
       
@@ -161,7 +155,7 @@ class CNRTChat extends HTMLElement {
     const list = this.shadowRoot.getElementById('msg-list');
     const div = document.createElement('div');
     div.classList.add('msg', sender);
-    div.innerText = text;
+    div.innerHTML = text;
     list.appendChild(div);
     list.scrollTop = list.scrollHeight;
   }

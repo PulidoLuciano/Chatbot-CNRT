@@ -53,7 +53,7 @@
     </div>
 
     <script>
-        const API_BASE = 'https://ancient-snake-56.hooks.n8n.cloud//webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db'; // CAMBIAR ESTO
+        const API_BASE = 'https://cnrt-tesis-alumno.hooks.n8n.cloud/webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db'; // CAMBIAR ESTO
         let currentSessionId = null;
 
         // 1. Cargar Usuarios (Polling cada 5s)
@@ -101,7 +101,7 @@
                     const div = document.createElement('div');
                     // Asumiendo que n8n devuelve { content: "...", role: "user/ai/agent" }
                     div.className = `msg ${h.type}`; 
-                    div.innerText = h.data.content;
+                    div.innerHTML = h.data.content;
                     msgDiv.appendChild(div);
                 });
                 msgDiv.scrollTop = msgDiv.scrollHeight;
