@@ -1,23 +1,32 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Portal CNRT - Prueba de Chat</title>
     <style>
-        body { font-family: sans-serif; background-color: #f0f2f5; padding: 20px; }
-        h1 { color: #333; }
+      body {
+        font-family: sans-serif;
+        background-color: #f0f2f5;
+        padding: 20px;
+      }
+      h1 {
+        color: #333;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <h1>Sitio Web Institucional (Demo)</h1>
-    <p>Esta es una página de prueba para verificar el funcionamiento del Web Component.</p>
+    <p>
+      Esta es una página de prueba para verificar el funcionamiento del Web
+      Component.
+    </p>
 
-    <cnrt-chat send-url="https://cnrt-tesis-alumno.hooks.n8n.cloud/webhook/329b0e53-4687-4e79-8c66-f4b54219234e"
-    sync-url="https://cnrt-tesis-alumno.hooks.n8n.cloud/webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db"></cnrt-chat>
+    <cnrt-chat
+      send-url="https://ejemplo.com/webhook/329b0e53-4687-4e79-8c66-f4b54219234e"
+      sync-url="https://ejemplo.com/webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db"
+    ></cnrt-chat>
 
     <script src="cnrt-chat.js"></script>
-
-</body>
+  </body>
 </html>

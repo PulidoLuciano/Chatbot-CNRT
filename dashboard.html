@@ -1,161 +1,277 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>CNRT - Panel de Agentes</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; display: flex; height: 100vh; margin: 0; background: #f0f2f5; }
-        
-        /* Sidebar: Lista de Usuarios */
-        #sidebar { width: 300px; background: white; border-right: 1px solid #ccc; display: flex; flex-direction: column; }
-        .sidebar-header { padding: 20px; background: #0072bb; color: white; font-weight: bold; }
-        #user-list { flex: 1; overflow-y: auto; }
-        .user-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: 0.2s; }
-        .user-item:hover, .user-item.active { background: #e3f2fd; }
-        .user-id { font-weight: bold; font-size: 14px; }
-        .user-status { font-size: 12px; color: #666; }
+      body {
+        font-family: "Segoe UI", sans-serif;
+        display: flex;
+        height: 100vh;
+        margin: 0;
+        background: #f0f2f5;
+      }
 
-        /* Main: Chat */
-        #chat-area { flex: 1; display: flex; flex-direction: column; background: #e5ddd5; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 70%; padding: 10px 15px; border-radius: 10px; font-size: 14px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
-        .msg.user { align-self: flex-start; background: white; border-bottom-left-radius: 0; }
-        .msg.ai { align-self: flex-start; background: #f0f0f0; border: 1px solid #ddd; } 
-        .msg.agent { align-self: flex-end; background: #dcf8c6; border-bottom-right-radius: 0; }
-        
-        /* Input */
-        #input-area { padding: 15px; background: #f0f0f0; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
-        button { padding: 10px 20px; background: #0072bb; color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        button:disabled { background: #ccc; }
+      /* Sidebar: Lista de Usuarios */
+      #sidebar {
+        width: 300px;
+        background: white;
+        border-right: 1px solid #ccc;
+        display: flex;
+        flex-direction: column;
+      }
+      .sidebar-header {
+        padding: 20px;
+        background: #0072bb;
+        color: white;
+        font-weight: bold;
+      }
+      #user-list {
+        flex: 1;
+        overflow-y: auto;
+      }
+      .user-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .user-item:hover,
+      .user-item.active {
+        background: #e3f2fd;
+      }
+      .user-id {
+        font-weight: bold;
+        font-size: 14px;
+      }
+      .user-status {
+        font-size: 12px;
+        color: #666;
+      }
+
+      /* Main: Chat */
+      #chat-area {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #e5ddd5;
+      }
+      #messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .msg {
+        max-width: 70%;
+        padding: 10px 15px;
+        border-radius: 10px;
+        font-size: 14px;
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      }
+      .msg.user {
+        align-self: flex-start;
+        background: white;
+        border-bottom-left-radius: 0;
+      }
+      .msg.ai {
+        align-self: flex-start;
+        background: #f0f0f0;
+        border: 1px solid #ddd;
+      }
+      .msg.agent {
+        align-self: flex-end;
+        background: #dcf8c6;
+        border-bottom-right-radius: 0;
+      }
+
+      /* Input */
+      #input-area {
+        padding: 15px;
+        background: #f0f0f0;
+        display: flex;
+        gap: 10px;
+      }
+      input {
+        flex: 1;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 20px;
+        outline: none;
+      }
+      button {
+        padding: 10px 20px;
+        background: #0072bb;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+      button:disabled {
+        background: #ccc;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <div id="sidebar">
-        <div class="sidebar-header">Cola de Atención</div>
-        <div id="user-list">
-            <div style="padding:20px; color:#666;">Cargando...</div>
-        </div>
-        <button onclick="loadUsers()" style="margin:10px; background:#666;">Actualizar Lista</button>
+      <div class="sidebar-header">Cola de Atención</div>
+      <div id="user-list">
+        <div style="padding: 20px; color: #666">Cargando...</div>
+      </div>
+      <button onclick="loadUsers()" style="margin: 10px; background: #666">
+        Actualizar Lista
+      </button>
     </div>
 
     <div id="chat-area">
-        <div id="messages">
-            <div style="text-align:center; margin-top:50px; color:#666;">Selecciona un usuario para comenzar</div>
+      <div id="messages">
+        <div style="text-align: center; margin-top: 50px; color: #666">
+          Selecciona un usuario para comenzar
         </div>
-        <div id="input-area">
-            <input type="text" id="replyInput" placeholder="Escribe una respuesta..." disabled>
-            <button id="sendBtn" onclick="sendReply()" disabled>Enviar</button>
-            <button onclick="closeTicket()" style="background:#d32f2f;">Cerrar Ticket</button>
-        </div>
+      </div>
+      <div id="input-area">
+        <input
+          type="text"
+          id="replyInput"
+          placeholder="Escribe una respuesta..."
+          disabled
+        />
+        <button id="sendBtn" onclick="sendReply()" disabled>Enviar</button>
+        <button onclick="closeTicket()" style="background: #d32f2f">
+          Cerrar Ticket
+        </button>
+      </div>
     </div>
 
     <script>
-        const API_BASE = 'https://cnrt-tesis-alumno.hooks.n8n.cloud/webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db'; // CAMBIAR ESTO
-        let currentSessionId = null;
+      const API_BASE =
+        "https://ejemplo.com/webhook/16a5ccac-16d3-4fcf-8c95-e13affa796db"; // CAMBIAR ESTO
+      let currentSessionId = null;
 
-        // 1. Cargar Usuarios (Polling cada 5s)
-        async function loadUsers() {
-            try {
-                const res = await fetch(`${API_BASE}/agent/users`);
-                const users = await res.json();
-                
-                const list = document.getElementById('user-list');
-                list.innerHTML = '';
-                
-                users.forEach(u => {
-                    const div = document.createElement('div');
-                    div.className = `user-item ${u === currentSessionId ? 'active' : ''}`;
-                    div.onclick = () => loadHistory(u);
-                    div.innerHTML = `
+      // 1. Cargar Usuarios (Polling cada 5s)
+      async function loadUsers() {
+        try {
+          const res = await fetch(`${API_BASE}/agent/users`, {
+            headers: { "ngrok-skip-browser-warning": "true" },
+          });
+          const users = await res.json();
+
+          const list = document.getElementById("user-list");
+          list.innerHTML = "";
+
+          users.forEach((u) => {
+            const div = document.createElement("div");
+            div.className = `user-item ${u === currentSessionId ? "active" : ""}`;
+            div.onclick = () => loadHistory(u);
+            div.innerHTML = `
                         <div class="user-id">${u}</div>
                         <div class="user-status">Esperando atención</div>
                     `;
-                    list.appendChild(div);
-                });
-            } catch (e) { console.error("Error cargando usuarios", e); }
+            list.appendChild(div);
+          });
+        } catch (e) {
+          console.error("Error cargando usuarios", e);
+        }
+      }
+
+      // 2. Cargar Historial
+      async function loadHistory(sessionId) {
+        currentSessionId = sessionId;
+        document.getElementById("replyInput").disabled = false;
+        document.getElementById("sendBtn").disabled = false;
+
+        // Actualizar UI visual
+        loadUsers(); // Para marcar activo
+
+        const msgDiv = document.getElementById("messages");
+        if (!msgDiv) {
+          msgDiv.innerHTML =
+            '<div style="text-align:center;">Cargando historial...</div>';
         }
 
-        // 2. Cargar Historial
-        async function loadHistory(sessionId) {
-            currentSessionId = sessionId;
-            document.getElementById('replyInput').disabled = false;
-            document.getElementById('sendBtn').disabled = false;
-            
-            // Actualizar UI visual
-            loadUsers(); // Para marcar activo
+        try {
+          const res = await fetch(
+            `${API_BASE}/agent/history?sessionId=${sessionId}`,
+            { headers: { "ngrok-skip-browser-warning": "true" } },
+          );
+          const history = await res.json();
 
-            const msgDiv = document.getElementById('messages');
-            if(!msgDiv) {
-                msgDiv.innerHTML = '<div style="text-align:center;">Cargando historial...</div>';
-            }
-
-            try {
-                const res = await fetch(`${API_BASE}/agent/history?sessionId=${sessionId}`);
-                const history = await res.json();
-                
-                msgDiv.innerHTML = '';
-                history.forEach(h => {
-                    const div = document.createElement('div');
-                    // Asumiendo que n8n devuelve { content: "...", role: "user/ai/agent" }
-                    div.className = `msg ${h.type}`; 
-                    div.innerHTML = h.data.content;
-                    msgDiv.appendChild(div);
-                });
-                msgDiv.scrollTop = msgDiv.scrollHeight;
-            } catch (e) { 
-                msgDiv.innerHTML = 'Error al cargar historial.';
-            }
-        }
-
-        // 3. Enviar Respuesta
-        async function sendReply() {
-            const input = document.getElementById('replyInput');
-            const text = input.value.trim();
-            if (!text || !currentSessionId) return;
-
-            // Optimismo en UI
-            const msgDiv = document.getElementById('messages');
-            const div = document.createElement('div');
-            div.className = 'msg agent';
-            div.innerText = text;
+          msgDiv.innerHTML = "";
+          history.forEach((h) => {
+            const div = document.createElement("div");
+            // Asumiendo que n8n devuelve { content: "...", role: "user/ai/agent" }
+            div.className = `msg ${h.type}`;
+            div.innerHTML = h.data.content;
             msgDiv.appendChild(div);
-            msgDiv.scrollTop = msgDiv.scrollHeight;
-            input.value = '';
-
-            try {
-                await fetch(`${API_BASE}/agent/reply`, {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ 
-                        sessionId: currentSessionId, 
-                        text: text 
-                    })
-                });
-            } catch (e) { alert("Error al enviar"); }
+          });
+          msgDiv.scrollTop = msgDiv.scrollHeight;
+        } catch (e) {
+          msgDiv.innerHTML = "Error al cargar historial.";
         }
+      }
 
-        // 4. Cerrar Ticket (Volver a IA)
-        async function closeTicket() {
-            if(!currentSessionId) return;
-            if(!confirm("¿Cerrar chat y devolver a la IA?")) return;
-            
-            await fetch(`${API_BASE}/agent/close`, { // Necesitas crear este webhook tb
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ sessionId: currentSessionId })
-            });
-            currentSessionId = null;
-            document.getElementById('messages').innerHTML = '';
-            loadUsers();
+      // 3. Enviar Respuesta
+      async function sendReply() {
+        const input = document.getElementById("replyInput");
+        const text = input.value.trim();
+        if (!text || !currentSessionId) return;
+
+        // Optimismo en UI
+        const msgDiv = document.getElementById("messages");
+        const div = document.createElement("div");
+        div.className = "msg agent";
+        div.innerText = text;
+        msgDiv.appendChild(div);
+        msgDiv.scrollTop = msgDiv.scrollHeight;
+        input.value = "";
+
+        try {
+          await fetch(`${API_BASE}/agent/reply`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({
+              sessionId: currentSessionId,
+              text: text,
+            }),
+          });
+        } catch (e) {
+          alert("Error al enviar");
         }
+      }
 
-        // Auto-carga inicial
-        setInterval(() => currentSessionId && loadHistory(currentSessionId), 1000 * 3);
-        setInterval(loadUsers, 1000 * 60 * 2); // Polling cada 2 minutos
+      // 4. Cerrar Ticket (Volver a IA)
+      async function closeTicket() {
+        if (!currentSessionId) return;
+        if (!confirm("¿Cerrar chat y devolver a la IA?")) return;
+
+        await fetch(`${API_BASE}/agent/close`, {
+          // Necesitas crear este webhook tb
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "ngrok-skip-browser-warning": "true",
+          },
+          body: JSON.stringify({ sessionId: currentSessionId }),
+        });
+        currentSessionId = null;
+        document.getElementById("messages").innerHTML = "";
         loadUsers();
+      }
+
+      // Auto-carga inicial
+      setInterval(
+        () => currentSessionId && loadHistory(currentSessionId),
+        1000 * 3,
+      );
+      setInterval(loadUsers, 1000 * 60 * 2); // Polling cada 2 minutos
+      loadUsers();
     </script>
-</body>
+  </body>
 </html>

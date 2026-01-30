@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   # Servicio 1: n8n
@@ -11,11 +11,11 @@ services:
       - N8N_HOST=0.0.0.0
       - N8N_PORT=5678
       - N8N_PROTOCOL=http
-      - WEBHOOK_URL=https://cnrt-tesis-alumno.hooks.n8n.cloud
-      - N8N_TUNNEL_SUBDOMAIN=cnrt-tesis-alumno
+      - WEBHOOK_URL=${WEBHOOK_URL}
+      # - N8N_TUNNEL_SUBDOMAIN=cnrt-tesis-alumno
       # Zona horaria de Argentina para los logs correctos
       - GENERIC_TIMEZONE=America/Argentina/Tucuman
-    command: "start --tunnel"
+    command: "start"
     volumes:
       - n8n_data:/home/node/.n8n
 
@@ -27,13 +27,27 @@ services:
       - "6333:6333"
     volumes:
       - qdrant_data:/qdrant/storage
-  
+
   redis:
     image: redis:alpine
     container_name: redis-cnrt
     command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
+
+  ngrok:
+    image: ngrok/ngrok:latest
+    restart: unless-stopped
+    command:
+      # Le decimos que apunte al servicio "n8n" en el puerto 5678
+      - "http"
+      - "n8n:5678"
+      - "--domain=${NGROK_DOMAIN}"
+    environment:
+      # Pega aquí tu token de ngrok
+      - NGROK_AUTHTOKEN=${NGROK_TOKEN}
+    ports:
+      - "4040:4040" # Panel de control de ngrok (opcional)
 
 volumes:
   n8n_data:

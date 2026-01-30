@@ -1,22 +1,22 @@
 class CNRTChat extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
+    this.attachShadow({ mode: "open" });
     this.isOpen = false;
     this.sessionId = this.getSessionId();
     // URL Base para POST (enviar) y GET (sincronizar)
     // Asumimos que tu webhook base es .../webhook/chat-web
-    this.syncUrl = this.getAttribute('sync-url');
-    this.sendUrl = this.getAttribute('send-url'); 
+    this.syncUrl = this.getAttribute("sync-url");
+    this.sendUrl = this.getAttribute("send-url");
     this.syncInterval = null;
     this.messageCount = 0; // Para saber si llegaron nuevos
   }
 
   getSessionId() {
-    let id = localStorage.getItem('cnrt_session_id');
+    let id = localStorage.getItem("cnrt_session_id");
     if (!id) {
-      id = 'web_' + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem('cnrt_session_id', id);
+      id = "web_" + Math.random().toString(36).substr(2, 9);
+      localStorage.setItem("cnrt_session_id", id);
     }
     return id;
   }
@@ -46,13 +46,16 @@ class CNRTChat extends HTMLElement {
     if (!this.isOpen) return; // Solo sincronizar si el chat está abierto
 
     try {
-      const syncUrl = this.syncUrl + '/agent/history?sessionId=' + this.sessionId;
+      const syncUrl =
+        this.syncUrl + "/agent/history?sessionId=" + this.sessionId;
 
-      const response = await fetch(syncUrl);
+      const response = await fetch(syncUrl, {
+        headers: { "ngrok-skip-browser-warning": "true" },
+      });
       if (!response.ok) return;
 
       const history = await response.json();
-      
+
       // Si hay más mensajes en el servidor que en mi pantalla, actualizo
       if (Array.isArray(history) && history.length > this.messageCount) {
         this.renderHistory(history);
@@ -63,16 +66,16 @@ class CNRTChat extends HTMLElement {
   }
 
   renderHistory(history) {
-    const list = this.shadowRoot.getElementById('msg-list');
-    list.innerHTML = '';
-    
-    history.forEach(msg => {
-      const sender = (msg.type === 'user') ? 'user' : 'bot';
+    const list = this.shadowRoot.getElementById("msg-list");
+    list.innerHTML = "";
+
+    history.forEach((msg) => {
+      const sender = msg.type === "user" ? "user" : "bot";
       const text = msg.content || msg.data?.content || msg.text || "";
-      
+
       this.addMessageDOM(text, sender);
     });
-    
+
     this.messageCount = history.length;
     list.scrollTop = list.scrollHeight;
   }
@@ -111,54 +114,64 @@ class CNRTChat extends HTMLElement {
   }
 
   addEventListeners() {
-    const launcher = this.shadowRoot.getElementById('launcher');
-    const closeBtn = this.shadowRoot.getElementById('close-btn');
-    const input = this.shadowRoot.getElementById('input');
+    const launcher = this.shadowRoot.getElementById("launcher");
+    const closeBtn = this.shadowRoot.getElementById("close-btn");
+    const input = this.shadowRoot.getElementById("input");
 
     const toggle = () => {
       this.isOpen = !this.isOpen;
-      this.shadowRoot.getElementById('window').classList.toggle('open', this.isOpen);
-      if(this.isOpen) {
-          input.focus();
-          this.syncMessages(); // Sincronizar al abrir
+      this.shadowRoot
+        .getElementById("window")
+        .classList.toggle("open", this.isOpen);
+      if (this.isOpen) {
+        input.focus();
+        this.syncMessages(); // Sincronizar al abrir
       }
     };
 
-    launcher.addEventListener('click', toggle);
-    closeBtn.addEventListener('click', toggle);
+    launcher.addEventListener("click", toggle);
+    closeBtn.addEventListener("click", toggle);
 
-    input.addEventListener('keypress', async (e) => {
-      if (e.key === 'Enter') {
+    input.addEventListener("keypress", async (e) => {
+      if (e.key === "Enter") {
         const text = input.value.trim();
         if (!text) return;
-        
+
         // Optimismo: Mostrar mensaje inmediatamente
-        this.addMessageDOM(text, 'user');
-        input.value = '';
+        this.addMessageDOM(text, "user");
+        input.value = "";
 
         try {
-            // Enviar mensaje (POST)
-            await fetch(this.sendUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chatInput: text, sessionId: this.sessionId })
-            });
-            // No esperamos respuesta directa del fetch POST.
-            // Dejamos que el próximo "syncMessages" traiga la respuesta (sea IA o Humano)
-            setTimeout(() => this.syncMessages(), 1000); 
-        } catch (err) { console.error(err); }
+          // Enviar mensaje (POST)
+          await fetch(this.sendUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "ngrok-skip-browser-warning": "true",
+            },
+            body: JSON.stringify({
+              chatInput: text,
+              sessionId: this.sessionId,
+            }),
+          });
+          // No esperamos respuesta directa del fetch POST.
+          // Dejamos que el próximo "syncMessages" traiga la respuesta (sea IA o Humano)
+          setTimeout(() => this.syncMessages(), 1000);
+        } catch (err) {
+          console.error(err);
+        }
       }
     });
   }
 
   addMessageDOM(text, sender) {
-    const list = this.shadowRoot.getElementById('msg-list');
-    const div = document.createElement('div');
-    div.classList.add('msg', sender);
-    div.innerHTML = text;
+    const list = this.shadowRoot.getElementById("msg-list");
+    const div = document.createElement("div");
+    div.classList.add("msg", sender);
+    div.innerHTML = text.replace(/\n/g, "<br>");
     list.appendChild(div);
     list.scrollTop = list.scrollHeight;
   }
 }
 
-customElements.define('cnrt-chat', CNRTChat);
+customElements.define("cnrt-chat", CNRTChat);
