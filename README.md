@@ -26,7 +26,7 @@ Sigue estas instrucciones detalladas para desplegar el entorno de desarrollo y p
 
 1.  **Clonar el repositorio:**
     ```bash
-    git clone <URL_DEL_REPOSITORIO>
+    git clone https://github.com/PulidoLuciano/Chatbot-CNRT.git
     cd Chatbot-CNRT
     ```
 
@@ -56,9 +56,9 @@ docker compose up -d
 4.  **Importar Workflows:**
     * Crea 3 flujos de trabajo nuevos en blanco.
     * Importa en cada uno los archivos `.json` ubicados en la carpeta `/workflows` del repositorio:
-        * `Chatbot_Main.json` (Lógica principal).
-        * `Respuesta_Modular.json` (Manejador de respuestas omnicanal).
-        * `Derivacion_Humana.json` (Lógica de traspaso a operador).
+        * `Chatbot.json` (Lógica principal).
+        * `Responder_mensaje.json` (Manejador de respuestas omnicanal).
+        * `Derivacion_humana.json` (Lógica de traspaso a operador).
 
 ### 4. Configuración de Servicios y Credenciales
 
@@ -66,7 +66,7 @@ Debes configurar las credenciales dentro de n8n para conectar los servicios exte
 
 #### A. Google Drive (Fuente de Documentos)
 1.  Genera credenciales OAuth 2.0 desde la [Google Cloud Console](https://console.cloud.google.com/).
-2.  Crea una carpeta específica en tu Google Drive (ej: `CNRT_Normativas`) donde alojarás los PDFs.
+2.  Crea una carpeta específica en tu Google Drive (nombre: `CNRT_Normativas`) donde alojarás los PDFs.
 3.  En n8n, crea una credencial de "Google Drive OAuth2 API" y vincula tu cuenta.
 
 #### B. Qdrant (Base de Datos Vectorial)
@@ -105,9 +105,9 @@ Al importar los workflows, los IDs internos cambian y rompen las referencias ent
 
 1.  **Activar Workflows:**
     Haz clic en el switch **Activate** (arriba a la derecha) en el siguiente orden estricto:
-    1.  Workflow de Respuesta Modular.
+    1.  Workflow de Respuesta mensaje.
     2.  Workflow de Derivación Humana.
-    3.  Workflow Chatbot Principal.
+    3.  Workflow Chatbot.
 
 2.  **Carga de Conocimiento (RAG):**
     * Sube los archivos PDF con las normativas a la carpeta de Google Drive `CNRT_Normativas`.
@@ -138,4 +138,4 @@ En la etiqueta del componente HTML, actualiza los atributos con las URLs de prod
 * `send-url`: Apunta al webhook de entrada del Chatbot Principal.
 
 ---
-*Desarrollado como Proyecto de Investigación GIITNI - UTN FRT - Tucumán, Argentina.*
+*Desarrollado como Proyecto de Investigación GIITNI - UTN FRT - Tucumán, Argentina. Luciano Pulido.*
