@@ -9,7 +9,9 @@ class CNRTChat extends HTMLElement {
     this.syncUrl = this.getAttribute("sync-url");
     this.sendUrl = this.getAttribute("send-url");
     this.syncInterval = null;
-    this.messageCount = 0; // Para saber si llegaron nuevos
+    this.messageCount = 0;
+    this.messages = [];
+    this.lastServerResponse = [];
   }
 
   getSessionId() {
@@ -43,7 +45,7 @@ class CNRTChat extends HTMLElement {
   }
 
   async syncMessages() {
-    if (!this.isOpen) return; // Solo sincronizar si el chat está abierto
+    if (!this.isOpen) return;
 
     try {
       const syncUrl =
@@ -56,9 +58,12 @@ class CNRTChat extends HTMLElement {
 
       const history = await response.json();
 
-      // Si hay más mensajes en el servidor que en mi pantalla, actualizo
-      if (Array.isArray(history) && history.length > this.messageCount) {
+      if (history.length > this.messages.length) {
+        this.messages = history;
+        this.lastServerResponse = history;
         this.renderHistory(history);
+      } else {
+        this.lastServerResponse = history;
       }
     } catch (e) {
       console.error("Error sync:", e);
@@ -137,8 +142,14 @@ class CNRTChat extends HTMLElement {
         const text = input.value.trim();
         if (!text) return;
 
-        // Optimismo: Mostrar mensaje inmediatamente
+        if (this.lastServerResponse.length < this.messages.length) {
+          this.messages = [];
+          const list = this.shadowRoot.getElementById("msg-list");
+          list.innerHTML = "";
+        }
+
         this.addMessageDOM(text, "user");
+        this.messages.push({ type: "user", data: { content: text } });
         input.value = "";
 
         try {
